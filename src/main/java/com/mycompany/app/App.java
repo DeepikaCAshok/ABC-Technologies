@@ -9,8 +9,12 @@ public class App {
 
     public App() {}
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         System.out.println(MESSAGE);
+
+        while (true) {
+            Thread.sleep(1000);
+        }
     }
 
     public String getMessage() {
