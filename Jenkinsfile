@@ -19,7 +19,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'git@github.com:DeepikaCAshok/ABC-Technologies.git'
+                    url: 'https://github.com/DeepikaCAshok/ABC-Technologies.git'
             }
         }
 
