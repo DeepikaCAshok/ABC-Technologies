@@ -36,7 +36,11 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh 'mvn sonar:sonar'
+                    sh '''
+                    mvn sonar:sonar \
+                    -Dsonar.projectKey=ABC-Technologies \
+                    -Dsonar.projectName=ABC-Technologies
+                    '''
                 }
             }
         }
@@ -49,16 +53,16 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                sh 'docker build -t ${IMAGE_NAME}:latest .'
+                sh 'docker build -t student-app .'
             }
         }
 
         stage('Deploy') {
             steps {
                 sh '''
-                    docker stop ${CONTAINER_NAME} || true
-                    docker rm ${CONTAINER_NAME} || true
-                    docker run -d --name ${CONTAINER_NAME} -p 8081:8080 ${IMAGE_NAME}:latest
+                docker stop student-container || true
+                docker rm student-container || true
+                docker run -d --name student-container -p 8081:8080 student-app
                 '''
             }
         }
