@@ -3,14 +3,21 @@ pipeline {
     agent any
 
     tools {
+        jdk 'JDK21'
         maven 'Maven3'
+    }
+
+    environment {
+        IMAGE_NAME = "student-app"
+        CONTAINER_NAME = "student-container"
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/DeepikaCAshok/ABC-Technologies.git'
+                git branch: 'main',
+                    url: 'git@github.com:DeepikaCAshok/ABC-Technologies.git'
             }
         }
 
@@ -42,15 +49,32 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                sh 'docker build -t sample-maven-app .'
+                sh 'docker build -t ${IMAGE_NAME}:latest .'
             }
         }
 
         stage('Deploy') {
             steps {
-                echo 'Deploying application...'
+                sh '''
+                    docker stop ${CONTAINER_NAME} || true
+                    docker rm ${CONTAINER_NAME} || true
+                    docker run -d --name ${CONTAINER_NAME} -p 8081:8080 ${IMAGE_NAME}:latest
+                '''
             }
         }
+    }
 
+    post {
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed.'
+        }
+
+        always {
+            echo 'Pipeline execution completed.'
+        }
     }
 }
