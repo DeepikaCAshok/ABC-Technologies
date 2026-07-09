@@ -7,6 +7,9 @@ pipeline {
     }
 
     environment {
+        JAVA_HOME = "/usr/lib/jvm/java-21-amazon-corretto.x86_64"
+        PATH = "${JAVA_HOME}/bin:${env.PATH}"
+
         IMAGE_NAME = "student-app"
         CONTAINER_NAME = "student-container"
     }
@@ -16,7 +19,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/DeepikaCAshok/ABC-Technologies.git'
+                    url: 'git@github.com:DeepikaCAshok/ABC-Technologies.git'
             }
         }
 
@@ -32,18 +35,6 @@ pipeline {
             }
         }
 
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                    mvn sonar:sonar \
-                    -Dsonar.projectKey=ABC-Technologies \
-                    -Dsonar.projectName=ABC-Technologies
-                    '''
-                }
-            }
-        }
-
         stage('Package') {
             steps {
                 sh 'mvn package'
@@ -52,16 +43,16 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                sh 'docker build -t student-app .'
+                sh 'docker build -t ${IMAGE_NAME}:latest .'
             }
         }
 
         stage('Deploy') {
             steps {
                 sh '''
-                docker stop student-container || true
-                docker rm student-container || true
-                docker run -d --name student-container -p 8081:8080 student-app
+                    docker stop ${CONTAINER_NAME} || true
+                    docker rm ${CONTAINER_NAME} || true
+                    docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest
                 '''
             }
         }
@@ -73,7 +64,7 @@ pipeline {
         }
 
         failure {
-            echo 'Pipeline failed.'
+            echo 'Pipeline failed!'
         }
 
         always {
