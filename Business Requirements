@@ -1,41 +1,74 @@
-Developer Push
+pipeline {
 
-↓
+    agent any
 
-GitHub
+    tools {
+        maven 'Maven3'
+    }
 
-↓
+    environment {
+        JAVA_HOME = "/usr/lib/jvm/java-21-amazon-corretto.x86_64"
+        PATH = "${JAVA_HOME}/bin:${env.PATH}"
 
-Jenkins Trigger
+        IMAGE_NAME = "student-app"
+        CONTAINER_NAME = "student-container"
+    }
 
-↓
+    stages {
 
-Checkout Code
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'git@github.com:DeepikaCAshok/ABC-Technologies.git'
+            }
+        }
 
-↓
+        stage('Build') {
+            steps {
+                sh 'mvn clean compile'
+            }
+        }
 
-Compile
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
 
-↓
+        stage('Package') {
+            steps {
+                sh 'mvn package'
+            }
+        }
 
-Run Unit Tests
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t ${IMAGE_NAME}:latest .'
+            }
+        }
 
-↓
+        stage('Deploy') {
+            steps {
+                sh '''
+                    docker stop ${CONTAINER_NAME} || true
+                    docker rm ${CONTAINER_NAME} || true
+                    docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME}:latest
+                '''
+            }
+        }
+    }
 
-Package JAR
+    post {
+        success {
+            echo 'Pipeline executed successfully!'
+        }
 
-↓
+        failure {
+            echo 'Pipeline failed!'
+        }
 
-Build Docker Image
-
-↓
-
-Deploy Container
-
-↓
-
-Verify Application
-
-↓
-
-SUCCESS
+        always {
+            echo 'Pipeline execution completed.'
+        }
+    }
+}
